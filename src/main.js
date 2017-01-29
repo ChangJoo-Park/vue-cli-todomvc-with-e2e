@@ -3,6 +3,8 @@
 import Vue from 'vue'
 import App from './App'
 
+// TODO MVC css
+import '../node_modules/todomvc-app-css/index.css'
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
