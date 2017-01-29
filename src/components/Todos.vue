@@ -67,6 +67,7 @@ export default {
   methods: {
     addTodo () {
       if (this.newTodo.trim() === '') {
+        this.newTodo = ''
         return
       }
       this.todos.push({
