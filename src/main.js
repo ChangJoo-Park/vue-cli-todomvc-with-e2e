@@ -2,12 +2,31 @@
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue'
 import App from './App'
+import Director from 'director/build/director'
 
 // TODO MVC css
 import '../node_modules/todomvc-app-css/index.css'
+
 /* eslint-disable no-new */
-new Vue({
+window.VueApp = new Vue({
   el: '#app',
   template: '<App/>',
   components: { App }
 })
+
+const router = new Director.Router();
+
+['all', 'active', 'completed'].forEach(visibility => {
+  router.on(visibility, () => {
+    window.VueApp.filter = visibility
+  })
+})
+
+router.configure({
+  notfound: function () {
+    window.location.hash = ''
+    window.VueApp.filter = 'all'
+  }
+})
+
+router.init()
