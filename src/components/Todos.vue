@@ -1,67 +1,110 @@
 <template>
-  <div>
-    <section class="todoapp">
-      <header class="header">
-        <h1>todos</h1>
-        <input class="new-todo" placeholder="What needs to be done?" autofocus>
-      </header>
-      <!-- This section should be hidden by default and shown when there are todos -->
-      <section class="main">
-        <input class="toggle-all" type="checkbox">
-        <label for="toggle-all">Mark all as complete</label>
+  <section class="todoapp">
+    <header class="header">
+      <h1>Todos</h1>
+      <input type="text" class="new-todo" autofocus autocomplete="off" placeholder="What needs to be done?" v-model="newTodo" @keyup.enter="addTodo" />
+    </header>
+      <section class="main" v-show="todos.length" v-cloak>
+        <input type="checkbox" class="toggle-all" v-model="allDone">
         <ul class="todo-list">
-          <!-- These are here just to show the structure of the list items -->
-          <!-- List items should get the class `editing` when editing and `completed` when marked as completed -->
-          <li class="completed">
+          <li class="todo" v-for="todo in filteredTodos" :class="{completed : todo.completed, editing : todo === editing }">
             <div class="view">
-              <input class="toggle" type="checkbox" checked>
-              <label>Taste JavaScript</label>
-              <button class="destroy"></button>
+              <input type="checkbox" v-model="todo.completed" class="toggle">
+              <label @dblclick="editTodo(todo)">{{ todo.title }}</label>
+              <button class="destroy" @click.prevent="deleteTodo(todo)"></button>
             </div>
-            <input class="edit" value="Create a TodoMVC template">
-          </li>
-          <li>
-            <div class="view">
-              <input class="toggle" type="checkbox">
-              <label>Buy a unicorn</label>
-              <button class="destroy"></button>
-            </div>
-            <input class="edit" value="Rule the web">
+            <input type="text" class="edit" v-model="todo.title" @keyup.enter="doneEdit" @blur="doneEdit" v-todoFocus="todo === editing"></input>
           </li>
         </ul>
-      </section>
-      <!-- This footer should hidden by default and shown when there are todos -->
-      <footer class="footer">
-        <!-- This should be `0 items left` by default -->
-        <span class="todo-count"><strong>0</strong> item left</span>
-        <!-- Remove this if you don't implement routing -->
+      </div>
+      <footer class="footer" v-show="todos.length > 0">
+        <span class="todo-count">
+          <strong>{{ remaining }}</strong> {{ remaining | pluralize }} left
+        </span>
         <ul class="filters">
-          <li>
-            <a class="selected" href="#/">All</a>
-          </li>
-          <li>
-            <a href="#/active">Active</a>
-          </li>
-          <li>
-            <a href="#/completed">Completed</a>
-          </li>
+          <li><a href="#/all" :class="{selected: filter == 'all'}" @click="filter = 'all'">All</a></li>
+          <li><a href="#/active" :class="{selected: filter == 'active'}" @click="filter = 'active'">Active</a></li>
+          <li><a href="#/completed" :class="{selected: filter == 'completed'}" @click="filter = 'completed'">Completed</a></li>
         </ul>
-        <!-- Hidden if no completed items are left ↓ -->
-        <button class="clear-completed">Clear completed</button>
+        <button class="clear-completed" v-show="completed" @click.prevent="deleteCompleted">Clear Completed</button>
       </footer>
-    </section>
-    <footer class="info">
-      <p>Double-click to edit a todo</p>
-      <!-- Remove the below line ↓ -->
-      <p>Template by <a href="http://sindresorhus.com">Sindre Sorhus</a></p>
-      <!-- Change this out with your name and url ↓ -->
-      <p>Created by <a href="http://todomvc.com">you</a></p>
-      <p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
-    </footer>
-  </div>
+  </section>
 </template>
 
 <script>
+import Vue from 'vue'
+
+export default {
+  data () {
+    return {
+      todos: [],
+      newTodo: '',
+      filter: 'all',
+      editing: null
+    }
+  },
+  filters: {
+    pluralize: function (n) {
+      return n === 1 ? 'item' : 'items'
+    }
+  },
+  directives: {
+    todoFocus (el, value) {
+      if (value) {
+        Vue.nextTick(_ => {
+          el.focus()
+        })
+      }
+    }
+  },
+  methods: {
+    addTodo () {
+      this.todos.push({
+        completed: false,
+        title: this.newTodo
+      })
+      this.newTodo = ''
+    },
+    deleteTodo (todo) {
+      this.todos = this.todos.filter(t => t !== todo)
+    },
+    deleteCompleted () {
+      this.todos = this.todos.filter(todo => !todo.completed)
+    },
+    editTodo (todo) {
+      this.editing = todo
+    },
+    doneEdit () {
+      this.editing = null
+    }
+  },
+  computed: {
+    remaining () {
+      return this.todos.filter(todo => !todo.completed).length
+    },
+    completed () {
+      return this.todos.filter(todo => todo.completed).length
+    },
+    filteredTodos () {
+      if (this.filter === 'active') {
+        return this.todos.filter(todo => !todo.completed)
+      } else if (this.filter === 'completed') {
+        return this.todos.filter(todo => todo.completed)
+      }
+      return this.todos
+    },
+    allDone: {
+      get () {
+        return this.remaining === 0
+      },
+      set (value) {
+        this.todos.forEach(todo => {
+          todo.completed = value
+        })
+      }
+    }
+  }
+}
 </script>
 
 <style>
