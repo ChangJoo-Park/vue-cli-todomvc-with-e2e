@@ -33,11 +33,12 @@
 
 <script>
 import Vue from 'vue'
+import todoStore from '../store'
 
 export default {
   data () {
     return {
-      todos: [],
+      todos: todoStore.fetch(),
       newTodo: '',
       filter: 'all',
       editing: null
@@ -55,6 +56,12 @@ export default {
           el.focus()
         })
       }
+    }
+  },
+  watch: {
+    todos: {
+      deep: true,
+      handler: todoStore.save
     }
   },
   methods: {
