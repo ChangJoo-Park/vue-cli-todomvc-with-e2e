@@ -40,7 +40,7 @@ export default {
     return {
       todos: todoStore.fetch(),
       newTodo: '',
-      filter: 'all',
+      filter: window.location.hash.slice(2),
       editing: null
     }
   },
